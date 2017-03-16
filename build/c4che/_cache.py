@@ -1,0 +1,12 @@
+ARCHS = ['arm-rtems4.12']
+ARCH_BSPS = ['arm-rtems4.12-beagleboneblack']
+AUTO_REGEN = False
+BINDIR = '/home/c/development/rtems/rtems-4.12/bin'
+FREEBSD_OPTIONS = ''
+LIBDIR = '/home/c/development/rtems/rtems-4.12/lib'
+LONG_COMMANDS = 'no'
+NET_CONFIG = 'config.inc'
+PREFIX = '/home/c/development/rtems/rtems-4.12'
+RTEMS_TOOLS = ['/home/c/development/rtems/rtems-4.12/bin']
+SHOW_COMMANDS = 'no'
+WARNINGS = False

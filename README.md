@@ -1,1 +1,1 @@
-# RTEMS-libssd
+# rtems-bsd
