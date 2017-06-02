@@ -111,8 +111,6 @@ static struct resource_spec am335x_musbotg_mem_spec[] = {
 	{ SYS_RES_MEMORY,   0,  RF_ACTIVE },
 	{ SYS_RES_MEMORY,   1,  RF_ACTIVE },
 	{ SYS_RES_IRQ, 0, RF_ACTIVE | RF_SHAREABLE },
-	{ SYS_RES_IRQ, 1, RF_ACTIVE | RF_SHAREABLE },
-	{ SYS_RES_IRQ, 2, RF_ACTIVE | RF_SHAREABLE },
 	{ -1,               0}
 };
 
@@ -132,7 +130,7 @@ static device_detach_t musbotg_detach;
 
 struct musbotg_super_softc {
 	struct musbotg_softc	sc_otg;
-	struct resource		*sc_mem_res[5];
+	struct resource		*sc_mem_res[3];
 	int			sc_irq_rid;
 };
 
@@ -140,12 +138,18 @@ static void
 musbotg_vbus_poll(struct musbotg_super_softc *sc)
 {
 	uint32_t stat;
-
+  //printf("musbotg_vbus_poll func\n");
 	if (sc->sc_otg.sc_mode == MUSB2_DEVICE_MODE)
+		{  //printf("MUSB2_DEVICE_MODE\n");
 		musbotg_vbus_interrupt(&sc->sc_otg, 1);
-	else {
+	}
+	else {//printf("MUSB2_HOST_MODE\n");
 		stat = USBCTRL_READ4(sc, USBCTRL_STAT);
+		//printf("stat:%x\n",stat );
+		//printf("%x\n",*(unsigned int *)(0x47401018));
+       // printf("%x\n",*(unsigned int *)(0x47401818));
 		musbotg_vbus_interrupt(&sc->sc_otg, stat & 1);
+		
 	}
 }
 
@@ -160,15 +164,25 @@ musbotg_clocks_on(void *arg)
 {
 	struct musbotg_softc *sc;
 	uint32_t c, reg;
-
+printf("musbotg_clocks_on func\n");
 	sc = arg;
         reg = USB_CTRL[sc->sc_id];
-
+printf("sc->sc_id:%d\n",sc->sc_id );
+//printf("reg:%x\n",reg );
 	ti_scm_reg_read_4(reg, &c);
+	printf("*(unsigned int *)(0x44e10628):%x\n",*(unsigned int *)(0x44e10628) );
+	printf("c:%x\n",c );
 	c &= ~3; /* Enable power */
 	c |= 1 << 19; /* VBUS detect enable */
 	c |= 1 << 20; /* Session end enable */
 	ti_scm_reg_write_4(reg, c);
+	printf("*(unsigned int *)(0x44e10628):%x\n",*(unsigned int *)(0x44e10628) );
+if (sc->sc_flags.status_vbus && sc->sc_id) {
+while(1);
+}
+	//printf("c:%x\n",c );
+	//printf("*(unsigned int *)(0x44e10628):%X\n",*(unsigned int *)(0x44e10628) );
+
 }
 
 static void
@@ -176,13 +190,13 @@ musbotg_clocks_off(void *arg)
 {
 	struct musbotg_softc *sc;
 	uint32_t c, reg;
-
+printf("musbotg_clocks_off func2333333333333333\n");
 	sc = arg;
         reg = USB_CTRL[sc->sc_id];
 
 	/* Disable power to PHY */
-//	ti_scm_reg_read_4(reg, &c);
-//	ti_scm_reg_write_4(reg, c | 3);
+	ti_scm_reg_read_4(reg, &c);
+	ti_scm_reg_write_4(reg, c | 3);
 }
 
 static void
@@ -202,6 +216,8 @@ musbotg_ep_int_set(struct musbotg_softc *sc, int ep, int on)
 static void
 musbotg_wrapper_interrupt(void *arg)
 {
+	
+	*(unsigned int *)(0x4804C13c)=~(0xf<<21);
 	struct musbotg_softc *sc = arg;
 	struct musbotg_super_softc *ssc = sc->sc_platform_data;
 	uint32_t stat, stat0, stat1;
@@ -209,6 +225,7 @@ printf("musbotg_wrapper_interrupt func\n");
 	stat = USBCTRL_READ4(ssc, USBCTRL_STAT);
 	stat0 = USBCTRL_READ4(ssc, USBCTRL_IRQ_STAT0);
 	stat1 = USBCTRL_READ4(ssc, USBCTRL_IRQ_STAT1);
+printf("musbotg_wrapper_interrupt func111111111111\n");	
 	if (stat0)
 		USBCTRL_WRITE4(ssc, USBCTRL_IRQ_STAT0, stat0);
 	if (stat1)
@@ -222,7 +239,9 @@ printf("musbotg_wrapper_interrupt func\n");
 
 	musbotg_interrupt(arg, ((stat0 >> 16) & 0xffff),
 	    stat0 & 0xffff, stat1 & 0xff);
+	    
 }
+
 
 static int
 musbotg_probe(device_t dev)
@@ -249,26 +268,29 @@ musbotg_attach(device_t dev)
 	uint32_t reg;
 
 	sc->sc_otg.sc_id = device_get_unit(dev);
-	printf("sc->sc_otg.sc_id:%d\n",sc->sc_otg.sc_id );
+	//printf("sc->sc_otg.sc_id:%d\n",sc->sc_otg.sc_id );
 printf("musbotg_attach func\n");
 	/* Request the memory resources */
-	err = bus_alloc_resources_musb(dev, am335x_musbotg_mem_spec,
+
+	err = bus_alloc_resources(dev, am335x_musbotg_mem_spec,
 		sc->sc_mem_res);
 	printf("test1!!!!\n");
-	printf("sc->sc_mem_res[0]:%x\n",sc->sc_mem_res[0]);
-	printf("sc->sc_mem_res[0]:%x\n",sc->sc_mem_res[1]);
-	printf("sc->sc_mem_res[0]:%x\n",sc->sc_mem_res[2]);
+	//printf("sc->sc_mem_res[0]:%x\n",sc->sc_mem_res[0]);
+	//printf("sc->sc_mem_res[0]:%x\n",sc->sc_mem_res[1]);
+	//printf("sc->sc_mem_res[0]:%x\n",sc->sc_mem_res[2]);
 	//printf("sc->sc_mem_res[0]:%x\n",sc->sc_mem_res[3]);
 	if (err) {
 		device_printf(dev,
 		    "Error: could not allocate mem resources\n");
 		return (ENXIO);
 	}
+	
+
     #ifndef __rtems__
 	/* Request the IRQ resources */
-	bus_alloc_resources(dev, am335x_musbotg_mem_spec,
-		sc->sc_otg.sc_irq_res);
-  
+		/* Request the memory resources */
+	
+
 	sc->sc_otg.sc_irq_res = bus_alloc_resource_any(dev, SYS_RES_IRQ,
 	    &sc->sc_irq_rid, RF_ACTIVE);
 //	printf("&sc->sc_irq_rid:%x\n",&sc->sc_irq_rid );
@@ -302,6 +324,7 @@ printf("test2\n");
 	}
 	printf("test3\n");
 	sc->sc_otg.sc_io_res = sc->sc_mem_res[RES_USBCORE];
+	//printf("sc->sc_otg.sc_io_res:%x\n",sc->sc_otg.sc_io_res );
 	sc->sc_otg.sc_io_tag =
 	    rman_get_bustag(sc->sc_otg.sc_io_res);
 	sc->sc_otg.sc_io_hdl =
@@ -314,10 +337,10 @@ printf("test2\n");
 		device_printf(dev, "No busdev for musb\n");
 		goto error;
 	}
-	printf("test4\n");
+//	printf("test4\n");
 	device_set_ivars(sc->sc_otg.sc_bus.bdev,
 	    &sc->sc_otg.sc_bus);
-
+/*
 	err = bus_setup_intr(dev, sc->sc_mem_res[2],
 	    INTR_TYPE_BIO | INTR_MPSAFE,
 	    NULL, (driver_intr_t *)musbotg_wrapper_interrupt,
@@ -339,8 +362,8 @@ printf("test2\n");
 		    "Failed to setup interrupt for musb\n");
 		goto error;
 	}
-
-	err = bus_setup_intr(dev, sc->sc_mem_res[4],
+*/
+	err = bus_setup_intr(dev, sc->sc_mem_res[2],
 	    INTR_TYPE_BIO | INTR_MPSAFE,
 	    NULL, (driver_intr_t *)musbotg_wrapper_interrupt,
 	    &sc->sc_otg, &sc->sc_otg.sc_intr_hdl);
@@ -350,12 +373,11 @@ printf("test2\n");
 		    "Failed to setup interrupt for musb\n");
 		goto error;
 	}
-
-
+   printf("test4\n");
    #ifndef __rtems__
 	err = bus_setup_intr(dev, sc->sc_otg.sc_irq_res,
 	    INTR_TYPE_BIO | INTR_MPSAFE,
-	    NULL, (driver_intr_t *)musbotg_wrapper_interrupt,
+	    NULL, (driver_intr_t *)musbotg_wrapper_interrupt ,
 	    &sc->sc_otg, &sc->sc_otg.sc_intr_hdl);
 	if (err) {
 		sc->sc_otg.sc_intr_hdl = NULL;
@@ -387,43 +409,50 @@ printf("test2\n");
 	if (sc->sc_otg.sc_id == 0)
 			sc->sc_otg.sc_mode = MUSB2_DEVICE_MODE;
 		else
-			sc->sc_otg.sc_mode = MUSB2_HOST_MODE;
+			{sc->sc_otg.sc_mode = MUSB2_HOST_MODE;
+				
+				
+            }
 
-
-printf("(sc)->sc_mem_res[0]:%x\n", *(volatile unsigned int *)((sc)->sc_mem_res[0]));
-printf("(sc)->sc_mem_res[0]:%x\n", (sc)->sc_mem_res[0]);
-printf("(sc)->sc_mem_res[1]:%x\n", *(volatile unsigned int *)((sc)->sc_mem_res[1]));
+//printf("(sc)->sc_mem_res[0]:%x\n", *(volatile unsigned int *)((sc)->sc_mem_res[0]));
+//printf("(sc)->sc_mem_res[0]:%x\n", (sc)->sc_mem_res[0]);
+//printf("(sc)->sc_mem_res[1]:%x\n", *(volatile unsigned int *)((sc)->sc_mem_res[1]));
 
 printf("test5\n");
 	if (sc->sc_otg.sc_mode == MUSB2_HOST_MODE) {
 		reg = USBCTRL_READ4(sc, USBCTRL_MODE);
+		//printf("reg:%x\n",reg );
+		//printf("0x474018e8:%x\n",*(unsigned int * )(0x474018e8));
 		reg |= USBCTRL_MODE_IDDIGMUX;
 		reg &= ~USBCTRL_MODE_IDDIG;
+		//printf("reg:%x\n",reg );
 		USBCTRL_WRITE4(sc, USBCTRL_MODE, reg);
 		USBCTRL_WRITE4(sc, USBCTRL_UTMI,
 		    USBCTRL_UTMI_FSDATAEXT);
 	} else {
-		printf("test5.0.1\n");
+		//printf("test5.0.1\n");
 		reg = USBCTRL_READ4(sc, USBCTRL_MODE);
-		printf("test5.0.2\n");
+		//printf("test5.0.2\n");
 		reg |= USBCTRL_MODE_IDDIGMUX;
 		reg |= USBCTRL_MODE_IDDIG;
 		USBCTRL_WRITE4(sc, USBCTRL_MODE, reg);
-		printf("test5.0.3\n");
+		//printf("test5.0.3\n");
 	}
 printf("test5.1\n");
 	reg = USBCTRL_INTEN_USB_ALL & ~USBCTRL_INTEN_USB_SOF;
 	USBCTRL_WRITE4(sc, USBCTRL_INTEN_SET1, reg);
 	USBCTRL_WRITE4(sc, USBCTRL_INTEN_CLR0, 0xffffffff);
-printf("test5.2\n");
+//printf("test5.2\n");
 	err = musbotg_init(&sc->sc_otg);
 	printf("test5.3\n");
 	if (!err)
+		{printf("!err\n");
 		err = device_probe_and_attach(sc->sc_otg.sc_bus.bdev);
+	}
 
 	if (err)
 		goto error;
-printf("test6\n");
+//printf("test6\n");
 	/* poll VBUS one time */
 	musbotg_vbus_poll(sc);
 

@@ -214,10 +214,12 @@ enum thread_sq_states {
  * Thread context.  Processes may have multiple threads.
  */
 struct thread {
+
 #ifdef __rtems__
 	Thread_Control *td_thread;
 	struct rtems_bsd_program_control *td_prog_ctrl;
 	char td_name[32];
+      
 #endif /* __rtems__ */
 #ifndef __rtems__
 	struct mtx	*volatile td_lock; /* replaces sched lock */
@@ -523,7 +525,7 @@ do {									\
 /*
  * Process structure.
  */
-struct proc {
+struct proc {	
 #ifndef __rtems__
 	LIST_ENTRY(proc) p_list;	/* (d) List of all processes. */
 	TAILQ_HEAD(, thread) p_threads;	/* (c) all threads. */

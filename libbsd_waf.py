@@ -696,6 +696,7 @@ def build(bld):
     source = ['freebsd/sys/arm/xilinx/zy7_slcr.c',
               'freebsd/sys/arm/ti/cpsw/if_cpsw.c',
               'freebsd/sys/arm/ti/ti_prcm.c',
+              'freebsd/sys/arm/ti/am335x_prcm.c',
               'freebsd/sys/arm/ti/usb/am335x_usbss.c',
               'freebsd/sys/arm/ti/usb/am335x_musb.c',
               'freebsd/sys/arm/ti/ti_scm.c',

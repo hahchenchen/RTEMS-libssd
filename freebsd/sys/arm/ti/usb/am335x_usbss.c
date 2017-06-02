@@ -113,17 +113,25 @@ __FBSDID("$FreeBSD$");
 #define 	USBCTRL_MODE_IDDIGMUX		(1 << 7)
 
 #define	USBSS_WRITE4(sc, reg, val)		\
-    bus_write_4((sc)->sc_mem_res, (reg), (val))
+    bus_write_4((sc)->sc_mem_res[0], (reg), (val))
 #define	USBSS_READ4(sc, reg)			\
-    bus_read_4((sc)->sc_mem_res, (reg))
+    bus_read_4((sc)->sc_mem_res[0], (reg))
 
 static device_probe_t usbss_probe;
 static device_attach_t usbss_attach;
 static device_detach_t usbss_detach;
 
+
+static struct resource_spec am335x_usbss_mem_spec[] = {
+	{ SYS_RES_MEMORY,   0,  RF_ACTIVE },
+	{ -1,               0}
+};
+
+
+
 struct usbss_softc {
 //	struct simplebus_softc	simplebus_sc;
-	struct resource		*sc_mem_res;
+	struct resource		*sc_mem_res[1];
 	int			sc_mem_rid;
 };
 
@@ -147,17 +155,28 @@ usbss_attach(device_t dev)
 {
 	struct usbss_softc *sc = device_get_softc(dev);
 	int i;
+	int err;
 	uint32_t rev;
 	phandle_t node;
 
 	/* Request the memory resources */
-	sc->sc_mem_res = bus_alloc_resource_any(dev, SYS_RES_MEMORY,
-	    &sc->sc_mem_rid, RF_ACTIVE);
-	if (sc->sc_mem_res == NULL) {
+	err = bus_alloc_resources(dev, am335x_usbss_mem_spec,
+		sc->sc_mem_res);
+	if (err) {
 		device_printf(dev,
 		    "Error: could not allocate mem resources\n");
 		return (ENXIO);
 	}
+
+/*
+	sc->sc_mem_res[0] = bus_alloc_resource_any(dev, SYS_RES_MEMORY,
+	    &sc->sc_mem_rid, RF_ACTIVE);
+	if (sc->sc_mem_res[0] == NULL) {
+		device_printf(dev,
+		    "Error: could not allocate mem resources\n");
+		return (ENXIO);
+	}
+*/
 
 	/* Enable device clocks. */
 	ti_prcm_clk_enable(MUSB0_CLK);
@@ -167,7 +186,10 @@ usbss_attach(device_t dev)
 	 * The registers of USB subsystem must not be accessed while the
 	 * reset pulse is active (200ns).
 	 */
+
+//printf("0x47400010:%x\n",*(unsigned int *)(0x47400010));
 	USBSS_WRITE4(sc, USBSS_SYSCONFIG, USBSS_SYSCONFIG_SRESET);
+//	printf("0x47400010:%x\n",*(unsigned int *)(0x47400010));
 	DELAY(100);
 	i = 10;
 	while (USBSS_READ4(sc, USBSS_SYSCONFIG) & USBSS_SYSCONFIG_SRESET) {
@@ -214,9 +236,9 @@ usbss_detach(device_t dev)
 	struct usbss_softc *sc = device_get_softc(dev);
 
 	/* Free resources if any */
-	if (sc->sc_mem_res)
+	if (sc->sc_mem_res[0])
 		bus_release_resource(dev, SYS_RES_MEMORY, sc->sc_mem_rid,
-		    sc->sc_mem_res);
+		    sc->sc_mem_res[0]);
 
 	/* during module unload there are lots of children leftover */
 	device_delete_children(dev);

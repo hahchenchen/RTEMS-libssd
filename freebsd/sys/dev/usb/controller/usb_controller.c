@@ -151,7 +151,7 @@ DRIVER_MODULE(usbus, saf1761otg, usb_driver, usb_devclass, 0, 0);
 static int
 usb_probe(device_t dev)
 {
-	printf("usb_probe func!!!!!\n");
+	//printf("usb controller_probe func!!!!!\n");
 	DPRINTF("\n");
 	return (0);
 }
@@ -177,7 +177,7 @@ static int
 usb_attach(device_t dev)
 {
 	struct usb_bus *bus = device_get_ivars(dev);
-
+//printf("usb_attach func111111111111111111\n");
 	DPRINTF("\n");
 
 	if (bus == NULL) {
@@ -378,7 +378,7 @@ usb_bus_explore(struct usb_proc_msg *pm)
 {
 	struct usb_bus *bus;
 	struct usb_device *udev;
-
+//printf("7777777777777777777777\n");
 	bus = ((struct usb_bus_msg *)pm)->bus;
 	udev = bus->devices[USB_ROOT_HUB_ADDR];
 
@@ -394,6 +394,7 @@ usb_bus_explore(struct usb_proc_msg *pm)
 	if (udev != NULL && udev->hub != NULL) {
 
 		if (bus->do_probe) {
+		//	printf("888888888888888888\n");
 			bus->do_probe = 0;
 			bus->driver_added_refcount++;
 		}
@@ -419,6 +420,7 @@ usb_bus_explore(struct usb_proc_msg *pm)
 		/*
 		 * First update the USB power state!
 		 */
+		printf("before usb_bus_powerd\n");
 		usb_bus_powerd(bus);
 #endif
 		 /* Explore the Root USB HUB. */
@@ -721,7 +723,7 @@ usb_bus_attach(struct usb_proc_msg *pm)
 
 	bus = ((struct usb_bus_msg *)pm)->bus;
 	dev = bus->bdev;
-
+printf("usb_bus_attach func!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	DPRINTF("\n");
 
 	switch (bus->usbrev) {
@@ -775,10 +777,11 @@ usb_bus_attach(struct usb_proc_msg *pm)
 	}
 
 	/* allocate the Root USB device */
-
+printf("before usb_alloc_device\n");
 	child = usb_alloc_device(bus->bdev, bus, NULL, 0, 0, 1,
 	    speed, USB_MODE_HOST);
 	if (child) {
+	//	printf("if (child)\n");
 		err = usb_probe_and_attach(child,
 		    USB_IFACE_INDEX_ANY);
 		if (!err) {
@@ -788,6 +791,7 @@ usb_bus_attach(struct usb_proc_msg *pm)
 			}
 		}
 	} else {
+		printf("err\n");
 		err = USB_ERR_NOMEM;
 	}
 
@@ -820,7 +824,7 @@ usb_attach_sub(device_t dev, struct usb_bus *bus)
 	if (usb_devclass_ptr == NULL)
 		usb_devclass_ptr = devclass_find("usbus");
 	mtx_unlock(&Giant);
-
+//printf("usb_attach_sub func\n");
 #if USB_HAVE_PF
 	usbpf_attach(bus);
 #endif
@@ -861,6 +865,7 @@ usb_attach_sub(device_t dev, struct usb_bus *bus)
 	bus->shutdown_msg[1].bus = bus;
 
 #if USB_HAVE_UGEN
+	printf("USB_HAVE_UGEN99999999999999999999999999999999999\n");
 	LIST_INIT(&bus->pd_cleanup_list);
 	bus->cleanup_msg[0].hdr.pm_callback = &usb_bus_cleanup;
 	bus->cleanup_msg[0].bus = bus;
@@ -899,7 +904,7 @@ usb_attach_sub(device_t dev, struct usb_bus *bus)
 		usb_proc_msignal(USB_BUS_EXPLORE_PROC(bus),
 		    &bus->attach_msg[0], &bus->attach_msg[1]);
 		USB_BUS_UNLOCK(bus);
-
+//printf("before usb_needs_explore\n");
 		/* Do initial explore */
 		usb_needs_explore(bus, 1);
 	}

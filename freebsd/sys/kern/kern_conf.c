@@ -72,6 +72,11 @@ static struct cdev_priv_list cdevp_free_list =
 static SLIST_HEAD(free_cdevsw, cdevsw) cdevsw_gt_post_list =
     SLIST_HEAD_INITIALIZER(cdevsw_gt_post_list);
 
+
+
+
+
+
 void
 dev_lock(void)
 {
@@ -115,6 +120,8 @@ dev_unlock_and_free(void)
 		free(csw, M_DEVT);
 	}
 }
+
+
 
 static void
 dev_free_devlocked(struct cdev *cdev)

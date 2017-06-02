@@ -1556,7 +1556,7 @@ usb_alloc_device(device_t parent_dev, struct usb_bus *bus,
 	uint8_t set_config_failed;
 	uint8_t do_unlock;
 
-	DPRINTF("parent_dev=%p, bus=%p, parent_hub=%p, depth=%u, "
+	printf("parent_dev=%p, bus=%p, parent_hub=%p, depth=%u, "
 	    "port_index=%u, port_no=%u, speed=%u, usb_mode=%u\n",
 	    parent_dev, bus, parent_hub, depth, port_index, port_no,
 	    speed, mode);
@@ -1681,6 +1681,7 @@ usb_alloc_device(device_t parent_dev, struct usb_bus *bus,
 	if (udev->ctrl_dev != NULL)
 		make_dev_alias(udev->ctrl_dev->cdev, "%s", udev->ugen_name);
 #endif
+
 	/* Initialise device */
 	if (bus->methods->device_init != NULL) {
 		err = (bus->methods->device_init) (udev);

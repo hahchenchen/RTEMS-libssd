@@ -240,24 +240,44 @@ musbotg_get_hw_ep_profile(struct usb_device *udev,
 static void
 musbotg_clocks_on(struct musbotg_softc *sc)
 {
+	printf("555555555555555555555\n");
+	
+//	*(unsigned int *)(0x44e10628)=0x3c184004;
+//	printf("*(unsigned int *)(0x44e10628):%X\n",*(unsigned int *)(0x44e10628) );
+	if (sc->sc_flags.clocks_off)
+	{
+		printf("clocks_off\n");
+	}
+	if( sc->sc_flags.port_powered)
+	{
+
+		printf("port_powered\n");
+	}
 	if (sc->sc_flags.clocks_off &&
 	    sc->sc_flags.port_powered) {
+		printf("clocks_off && port_powered\n");
 
 		DPRINTFN(4, "\n");
 
 		if (sc->sc_clocks_on) {
+			printf("sc_clocks_on\n");
 			(sc->sc_clocks_on) (sc->sc_clocks_arg);
 		}
+	//	printf("sc->sc_flags.clocks_off = 0;\n");
 		sc->sc_flags.clocks_off = 0;
-
-		/* XXX enable Transceiver */
+    //  printf("*(unsigned int *)(0x44e10628):%X\n",*(unsigned int *)(0x44e10628) );
+		
 	}
 }
 
 static void
 musbotg_clocks_off(struct musbotg_softc *sc)
 {
+	printf("66666666666666666666\n");
+	printf("*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
+
 	if (!sc->sc_flags.clocks_off) {
+		printf("666666clocks_off\n");
 
 		DPRINTFN(4, "\n");
 
@@ -2190,7 +2210,7 @@ void
 musbotg_vbus_interrupt(struct musbotg_softc *sc, uint8_t is_on)
 {
 	DPRINTFN(4, "vbus = %u\n", is_on);
-
+printf("musbotg_vbus_interrupt func\n");
 	USB_BUS_LOCK(&sc->sc_bus);
 	if (is_on) {
 		if (!sc->sc_flags.status_vbus) {
@@ -2199,8 +2219,10 @@ musbotg_vbus_interrupt(struct musbotg_softc *sc, uint8_t is_on)
 			/* complete root HUB interrupt endpoint */
 			musbotg_root_intr(sc);
 		}
-	} else {
+	} else {printf("!is_on\n");
+
 		if (sc->sc_flags.status_vbus) {
+			printf("status_vbus yes\n");
 			sc->sc_flags.status_vbus = 0;
 			sc->sc_flags.status_bus_reset = 0;
 			sc->sc_flags.status_suspend = 0;
@@ -2235,7 +2257,7 @@ musbotg_interrupt(struct musbotg_softc *sc,
 	uint8_t usb_status;
 	uint8_t temp;
 	uint8_t to = 2;
-
+printf("musbotg_interrupt func\n");
 	USB_BUS_LOCK(&sc->sc_bus);
 
 repeat:
@@ -3080,6 +3102,7 @@ musbotg_init(struct musbotg_softc *sc)
 	/* turn on clocks */
 
 	if (sc->sc_clocks_on) {
+		printf("if (sc->sc_clocks_on)\n");
 		(sc->sc_clocks_on) (sc->sc_clocks_arg);
 	}
 
@@ -3096,7 +3119,7 @@ musbotg_init(struct musbotg_softc *sc)
 	MUSB2_WRITE_2(sc, MUSB2_REG_INTRXE, 0);
 
 	/* disable pullup */
-    printf("musbotg_init func test2\n");
+ //   printf("musbotg_init func test2\n");
 	musbotg_pull_common(sc, 0);
 
 	/* wait a little bit (10ms) */
@@ -3111,36 +3134,41 @@ musbotg_init(struct musbotg_softc *sc)
 
 	MUSB2_WRITE_1(sc, MUSB2_REG_POWER,
 	    MUSB2_MASK_HSENAB | MUSB2_MASK_ISOUPD);
-
 	if (sc->sc_mode == MUSB2_DEVICE_MODE) {
-		/* clear Session bit, if set */
+	
 		temp = MUSB2_READ_1(sc, MUSB2_REG_DEVCTL);
 		temp &= ~MUSB2_MASK_SESS;
 		MUSB2_WRITE_1(sc, MUSB2_REG_DEVCTL, temp);
 	} else {
-		/* Enter session for Host mode */
+		
+	//	printf(" Enter session for Host mode\n");
 		temp = MUSB2_READ_1(sc, MUSB2_REG_DEVCTL);
+	//	printf("temp:%x\n",temp );
+		printf("*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 		temp |= MUSB2_MASK_SESS;
 		MUSB2_WRITE_1(sc, MUSB2_REG_DEVCTL, temp);
+		printf("*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 	}
-   printf("musbotg_init func test3\n");
+	
+  // printf("musbotg_init func test3\n");
 	/* wait a little for things to stabilise */
 	usb_pause_mtx(&sc->sc_bus.bus_mtx, hz / 10);
-printf("musbotg_init func test3.1\n");
+//printf("musbotg_init func test3.1\n");
 	DPRINTF("DEVCTL=0x%02x\n", temp);
-
+printf("1(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 	/* disable testmode */
 
 	MUSB2_WRITE_1(sc, MUSB2_REG_TESTMODE, 0);
-
+printf("2(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 	/* set default value */
 
 	MUSB2_WRITE_1(sc, MUSB2_REG_MISC, 0);
-
+printf("3*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 	/* select endpoint index 0 */
 
 	MUSB2_WRITE_1(sc, MUSB2_REG_EPINDEX, 0);
-printf("musbotg_init func test4\n");
+	printf("4*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
+//printf("musbotg_init func test4\n");
 	/* read out number of endpoints */
 
 	nrx =
@@ -3158,14 +3186,14 @@ printf("musbotg_init func test4\n");
 		DPRINTFN(2, "ERROR: Looks like the clocks are off!\n");
 	}
 	/* read out configuration data */
-printf("musbotg_init func test5\n");
+//printf("musbotg_init func test5\n");
 	sc->sc_conf_data = MUSB2_READ_1(sc, MUSB2_REG_CONFDATA);
 
 	DPRINTFN(2, "Config Data: 0x%02x\n",
 	    sc->sc_conf_data);
 
 	dynfifo = (sc->sc_conf_data & MUSB2_MASK_CD_DYNFIFOSZ) ? 1 : 0;
-
+printf("*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 	if (dynfifo) {
 		device_printf(sc->sc_bus.bdev, "Dynamic FIFO sizing detected, "
 		    "assuming 16Kbytes of FIFO RAM\n");
@@ -3175,7 +3203,7 @@ printf("musbotg_init func test5\n");
 	    MUSB2_READ_1(sc, MUSB2_REG_HWVERS));
 
 	/* initialise endpoint profiles */
-printf("musbotg_init func test6\n");
+//printf("musbotg_init func test6\n");
 	offset = 0;
 
 	for (temp = 1; temp <= sc->sc_ep_max; temp++) {
@@ -3190,7 +3218,7 @@ printf("musbotg_init func test6\n");
 
 		DPRINTF("Endpoint %u FIFO size: IN=%u, OUT=%u, DYN=%d\n",
 		    temp, ftx, frx, dynfifo);
-
+//printf("a*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 		if (dynfifo) {
 			if (frx && (temp <= nrx)) {
 				if (temp == 1) {
@@ -3198,19 +3226,24 @@ printf("musbotg_init func test6\n");
 					MUSB2_WRITE_1(sc, MUSB2_REG_RXFIFOSZ, 
 					    MUSB2_VAL_FIFOSZ_4096 |
 					    MUSB2_MASK_FIFODB);
+
+				//	printf("b*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 				} else if (temp < 8) {
 					frx = 10;	/* 1K */
 					MUSB2_WRITE_1(sc, MUSB2_REG_RXFIFOSZ, 
 					    MUSB2_VAL_FIFOSZ_512 |
 					    MUSB2_MASK_FIFODB);
+				//	printf("c*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 				} else {
 					frx = 7;	/* 128 bytes */
 					MUSB2_WRITE_1(sc, MUSB2_REG_RXFIFOSZ, 
 					    MUSB2_VAL_FIFOSZ_128);
+				//	printf("d*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 				}
 
 				MUSB2_WRITE_2(sc, MUSB2_REG_RXFIFOADD,
 				    offset >> 3);
+			//	printf("e*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 
 				offset += (1 << frx);
 			}
@@ -3268,19 +3301,23 @@ printf("musbotg_init func test6\n");
 			pf->support_in = 1;
 		}
 	}
-printf("musbotg_init func test7\n");
+	
+printf("*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
+
 	DPRINTFN(2, "Dynamic FIFO size = %d bytes\n", offset);
 
 	/* turn on default interrupts */
 
 	if (sc->sc_mode == MUSB2_HOST_MODE)
-		MUSB2_WRITE_1(sc, MUSB2_REG_INTUSBE, 0xff);
+	MUSB2_WRITE_1(sc, MUSB2_REG_INTUSBE, 0xff);
+		
 	else
 		MUSB2_WRITE_1(sc, MUSB2_REG_INTUSBE,
 		    MUSB2_MASK_IRESET);
+//printf("*(unsigned int *)(0x44e10628):%X\n",*(unsigned int *)(0x44e10628) );
 
 	musbotg_clocks_off(sc);
-printf("musbotg_init func test8\n");
+//printf("musbotg_init func test8\n");
 	USB_BUS_UNLOCK(&sc->sc_bus);
 
 	/* catch any lost interrupts */
@@ -3614,7 +3651,7 @@ musbotg_roothub_exec(struct usb_device *udev,
 	uint16_t index;
 	uint8_t reg;
 	usb_error_t err;
-
+//printf("musbotg_roothub_exec!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	USB_BUS_LOCK_ASSERT(&sc->sc_bus, MA_OWNED);
 
 	/* buffer reset */
@@ -3623,6 +3660,11 @@ musbotg_roothub_exec(struct usb_device *udev,
 	err = 0;
 
 	value = UGETW(req->wValue);
+	/*
+	printf("value:%x\n",value );
+	printf("req->bmRequestType:%x\n",req->bmRequestType );
+	printf("req->bRequest:%x\n",req->bRequest );
+	*/
 	index = UGETW(req->wIndex);
 
 	/* demultiplex the control request */
@@ -3761,6 +3803,7 @@ musbotg_roothub_exec(struct usb_device *udev,
 		case UR_GET_TT_STATE:
 			goto tr_handle_get_tt_state;
 		case UR_GET_STATUS:
+		    printf("UR_GET_STATUS\n");
 			goto tr_handle_get_port_status;
 		default:
 			goto tr_stalled;
@@ -3809,16 +3852,19 @@ tr_handle_get_descriptor:
 	case UDESC_STRING:
 		switch (value & 0xff) {
 		case 0:		/* Language table */
+			printf("0\n");
 			len = sizeof(usb_string_lang_en);
 			ptr = (const void *)&usb_string_lang_en;
 			goto tr_valid;
 
 		case 1:		/* Vendor */
+			printf("1\n");
 			len = sizeof(musbotg_vendor);
 			ptr = (const void *)&musbotg_vendor;
 			goto tr_valid;
 
 		case 2:		/* Product */
+			printf("2\n");
 			len = sizeof(musbotg_product);
 			ptr = (const void *)&musbotg_product;
 			goto tr_valid;
@@ -3880,7 +3926,7 @@ tr_handle_clear_port_feature:
 		goto tr_stalled;
 	}
 	DPRINTFN(8, "UR_CLEAR_PORT_FEATURE on port %d\n", index);
-
+printf("before value\n");
 	switch (value) {
 	case UHF_PORT_SUSPEND:
 		if (sc->sc_mode == MUSB2_HOST_MODE)
@@ -3983,14 +4029,16 @@ tr_handle_set_port_feature:
 tr_handle_get_port_status:
 
 	DPRINTFN(8, "UR_GET_PORT_STATUS\n");
-
+printf("index:%x\n",index );
 	if (index != 1) {
 		goto tr_stalled;
 	}
 	if (sc->sc_flags.status_vbus) {
+		printf("sc->sc_flags.status_vbus\n");
 		musbotg_clocks_on(sc);
 		musbotg_pull_up(sc);
 	} else {
+		printf("!sc->sc_flags.status_vbus\n");
 		musbotg_pull_down(sc);
 		musbotg_clocks_off(sc);
 	}

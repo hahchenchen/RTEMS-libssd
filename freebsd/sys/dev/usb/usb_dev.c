@@ -81,6 +81,9 @@
 
 #include <machine/stdarg.h>
 #endif			/* USB_GLOBAL_INCLUDE_FILE */
+#define	IO_NDELAY	0x0004	
+
+
 
 #if USB_HAVE_UGEN
 

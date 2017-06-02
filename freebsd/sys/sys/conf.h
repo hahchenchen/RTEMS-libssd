@@ -307,6 +307,8 @@ struct cdev *make_dev_cred(struct cdevsw *_devsw, int _unit,
 #define	MAKEDEV_WAITOK		0x08
 #define	MAKEDEV_ETERNAL		0x10
 #define	MAKEDEV_CHECKNAME	0x20
+
+
 struct cdev *make_dev_credf(int _flags,
 		struct cdevsw *_devsw, int _unit,
 		struct ucred *_cr, uid_t _uid, gid_t _gid, int _mode,
@@ -324,6 +326,8 @@ int	make_dev_physpath_alias(int _flags, struct cdev **_cdev,
 void	dev_lock(void);
 void	dev_unlock(void);
 void	setconf(void);
+int	make_dev_s(struct make_dev_args *_args, struct cdev **_cdev,
+		const char *_fmt, ...) __printflike(3, 4);
 
 #ifdef KLD_MODULE
 #define	MAKEDEV_ETERNAL_KLD	0

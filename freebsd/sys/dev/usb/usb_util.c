@@ -136,13 +136,13 @@ usb_pause_mtx(struct mtx *mtx, int timo)
 {
 	if (mtx != NULL)
 		mtx_unlock(mtx);
-printf("usb_pause_mtx func\n");
+	
 	/*
 	 * Add one tick to the timeout so that we don't return too
 	 * early! Note that pause() will assert that the passed
 	 * timeout is positive and non-zero!
 	 */
-	//pause("USBWAIT", timo + 1);
+	pause("USBWAIT", timo + 1);
 
 	if (mtx != NULL)
 		{printf("mtx != NULL\n");

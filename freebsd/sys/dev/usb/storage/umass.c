@@ -716,9 +716,11 @@ static const STRUCT_USB_HOST_ID __used umass_devs[] = {
 };
 
 //DRIVER_MODULE(umass, uhub, umass_driver, umass_devclass, NULL, 0);
+//DRIVER_MODULE(umass, uhub, umass_driver, umass_devclass, NULL, 0);
 DRIVER_MODULE(umass, uhub, umass_driver, umass_devclass, NULL, 0);
 //DRIVER_MODULE(umass, nexus, umass_driver, umass_devclass, NULL, 0);
 MODULE_DEPEND(umass, usb, 1, 1, 1);
+MODULE_DEPEND(umass, uhub, 1, 1, 1);
 MODULE_DEPEND(umass, cam, 1, 1, 1);
 MODULE_VERSION(umass, 1);
 #ifndef __rtems__

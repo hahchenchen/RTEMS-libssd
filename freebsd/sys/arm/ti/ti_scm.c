@@ -133,6 +133,7 @@ ti_scm_attach(device_t dev)
 
 	ti_scm_sc = sc;
 
+
 	/* Attach platform extensions, if any. */
 	bus_generic_probe(dev);
 

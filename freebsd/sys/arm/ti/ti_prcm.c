@@ -87,14 +87,14 @@ __FBSDID("$FreeBSD$");
 #define CM_WKUP_CM_CLKMODE_DPLL_DISP	(CM_WKUP + 0x098)
 #define CM_WKUP_I2C0_CLKCTRL		(CM_WKUP + 0x0B8)
 #define CM_WKUP_ADC_TSC_CLKCTRL		(CM_WKUP + 0x0BC)
-
+/*
 static int
 am335x_clk_musb0_activate(struct ti_clock_dev *clkdev);
 
 
 struct ti_clock_dev ti_am335x_clk_devmap[] = {
 
-	/* Mentor USB HS controller core clocks */
+	
 	{	.id                  = MUSB0_CLK,
 		.clk_activate        = am335x_clk_musb0_activate,
 		.clk_deactivate      = NULL,
@@ -110,29 +110,24 @@ struct ti_clock_dev ti_am335x_clk_devmap[] = {
 static int
 am335x_clk_musb0_activate(struct ti_clock_dev *clkdev)
 {
-//	struct am335x_prcm_softc *sc = am335x_prcm_sc;
+//	printf("am335x_clk_musb0_activate\n");
+	
 
-//	if (sc == NULL)
-//		return ENXIO;
-
-	/* set ST_DPLL_CLKDCOLDO(9) to CLK_GATED(1) */
-	/* set DPLL_CLKDCOLDO_GATE_CTRL(8) to CLK_ENABLE(1)*/
 	(*(volatile uint32_t *)(0x44E0047c))=0x300;
-    //    prcm_write_4(CM_WKUP_CM_CLKDCOLDO_DPLL_PER, 0x300);
-
-	/*set MODULEMODE to ENABLE(2) */
-	//prcm_write_4(CM_PER_USB0_CLKCTRL, 2);
+    
    (*(volatile uint32_t *)(0x44E0001c))=2;
-	/* wait for MODULEMODE to become ENABLE(2) */
+	
 	while (((*(volatile uint32_t *)(0x44E0001c)) & 0x3) != 2)
 		DELAY(10);
 
-	/* wait for IDLEST to become Func(0) */
+	
 	while((*(volatile uint32_t *)(0x44E0001c)) & (3<<16))
 		DELAY(10);
 
 	return(0);
+	
 }
+*/
 
 /**
  *	ti_*_clk_devmap - Array of clock devices, should be defined one per SoC 
@@ -141,8 +136,8 @@ am335x_clk_musb0_activate(struct ti_clock_dev *clkdev)
  *	files and is specific to the given SoC platform.  Each entry in the array
  *	corresponds to an individual clock device.
  */
- struct ti_clock_dev ti_omap4_clk_devmap[];
- //struct ti_clock_dev ti_am335x_clk_devmap[];
+ extern struct ti_clock_dev ti_omap4_clk_devmap[];
+ extern struct ti_clock_dev ti_am335x_clk_devmap[];
 
 /**
  *	ti_prcm_clk_dev - returns a pointer to the clock device with given id
@@ -174,7 +169,7 @@ ti_prcm_clk_dev(clk_ident_t clk)
 
 
 	case CHIP_AM335X:
-	printf("CHIP_AM335X\n");
+	//printf("CHIP_AM335X\n");
 		clk_dev = &(ti_am335x_clk_devmap[0]);
 		break;
 
@@ -189,7 +184,7 @@ ti_prcm_clk_dev(clk_ident_t clk)
 
 	if (clk_dev == NULL)
 		panic("No clock devmap found");
-	printf("clk_dev->id:%x\n",clk_dev->id );
+	//printf("clk_dev->id:%x\n",clk_dev->id );
 	while (clk_dev->id != INVALID_CLK_IDENT) {
 		if (clk_dev->id == clk) {
 			return (clk_dev);

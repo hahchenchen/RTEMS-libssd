@@ -2757,7 +2757,7 @@ int
 device_probe_and_attach(device_t dev)
 {
 	int error;
-
+printf("device_probe_and_attach func\n");
 	GIANT_REQUIRED;
 
 	error = device_probe(dev);
@@ -4094,6 +4094,7 @@ bus_alloc_resources(device_t dev, struct resource_spec *rs,
 		    rs[i].type, &rs[i].rid, rs[i].flags);
         printf("res[i]:%x\n",res[i]->r_bushandle );
 		if (res[i] == NULL && !(rs[i].flags & RF_OPTIONAL)) {
+			printf("ENXIO\n");
 			bus_release_resources(dev, rs, res);
 			return (ENXIO);
 		}
@@ -4115,15 +4116,13 @@ bus_alloc_resources_musb(device_t dev, struct resource_spec *rs,
 		printf("i:%d\n",i );
 		printf("rs[i].rid:%x\n",rs[i].rid);
 		res[0] = bus_alloc_resource_any(dev, rs[0].type, &rs[0].rid, rs[0].flags);
+
 		res[1] = bus_alloc_resource_any_musb(dev, rs[1].type, &rs[1].rid, rs[1].flags);
 		res[2] = bus_alloc_resource_any(dev, rs[2].type, &rs[2].rid, rs[2].flags);
-		res[3] = bus_alloc_resource_any(dev, rs[3].type, &rs[3].rid, rs[3].flags);
-		res[4] = bus_alloc_resource_any(dev, rs[4].type, &rs[4].rid, rs[4].flags);
         printf("res[0]:%x\n",res[0]->r_bushandle );
         printf("res[1]:%x\n",res[1]->r_bushandle );
-		 printf("res[1]:%x\n",res[2]->r_bushandle );
-	     printf("res[1]:%x\n",res[3]->r_bushandle );
-	     printf("res[1]:%x\n",res[4]->r_bushandle );
+		 printf("res[2]:%x\n",res[2]->r_bushandle );
+
 	return (0);
 }
 

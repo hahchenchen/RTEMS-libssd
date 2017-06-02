@@ -407,15 +407,15 @@ static int
 am335x_prcm_probe(device_t dev)
 {
 
-	if (!ofw_bus_status_okay(dev))
-		return (ENXIO);
+//	if (!ofw_bus_status_okay(dev))
+	//	return (ENXIO);
 
-	if (ofw_bus_is_compatible(dev, "ti,am3-prcm")) {
+	//if (ofw_bus_is_compatible(dev, "ti,am3-prcm")) {
 		device_set_desc(dev, "AM335x Power and Clock Management");
 		return(BUS_PROBE_DEFAULT);
-	}
+	//}
 
-	return (ENXIO);
+	//return (ENXIO);
 }
 
 static int
@@ -423,7 +423,7 @@ am335x_prcm_attach(device_t dev)
 {
 	struct am335x_prcm_softc *sc = device_get_softc(dev);
 	unsigned int sysclk, fclk;
-
+printf("am335x_prcm_attach func\n");
 	if (am335x_prcm_sc)
 		return (ENXIO);
 
@@ -436,7 +436,7 @@ am335x_prcm_attach(device_t dev)
 	sc->bsh = rman_get_bushandle(sc->res[0]);
 
 	am335x_prcm_sc = sc;
-	ti_cpu_reset = am335x_prcm_reset;
+	//ti_cpu_reset = am335x_prcm_reset;
 
 	if (am335x_clk_get_sysclk_freq(NULL, &sysclk) != 0)
 		sysclk = 0;
@@ -463,10 +463,14 @@ static driver_t am335x_prcm_driver = {
 	sizeof(struct am335x_prcm_softc),
 };
 
+
+
 static devclass_t am335x_prcm_devclass;
 
 DRIVER_MODULE(am335x_prcm, nexus, am335x_prcm_driver,
 	am335x_prcm_devclass, 0, 0);
+
+
 MODULE_VERSION(am335x_prcm, 1);
 MODULE_DEPEND(am335x_prcm, ti_scm, 1, 1, 1);
 

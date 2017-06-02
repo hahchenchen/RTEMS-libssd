@@ -89,29 +89,9 @@ RTEMS_BSD_DEFINE_NEXUS_DEVICE(smc, 0, RTEMS_ARRAY_SIZE(smc0_res),
         }
 };
 
-RTEMS_BSD_DEFINE_NEXUS_DEVICE(cpsw, 0, RTEMS_ARRAY_SIZE(cpsw0_res),
-    &cpsw0_res[0]);
+RTEMS_BSD_DEFINE_NEXUS_DEVICE(cpsw, 0, RTEMS_ARRAY_SIZE(cpsw0_res), &cpsw0_res[0]);
 
 SYSINIT_DRIVER_REFERENCE(smscphy, miibus);
-
-
-    static const rtems_bsd_device_resource usbss[] = {
-        {
-                .type = RTEMS_BSD_RES_MEMORY,
-                .start_request = 0,
-                .start_actual = 0x47400000 /*Memory map address of the ethernet*/
-        }
-};
-
-
-RTEMS_BSD_DEFINE_NEXUS_DEVICE(usbss,0 , RTEMS_ARRAY_SIZE(usbss), &usbss[0]);
-
-
-
-
-
-
-
 
 
     static const rtems_bsd_device_resource musbotg_res1[] = {
@@ -128,20 +108,8 @@ RTEMS_BSD_DEFINE_NEXUS_DEVICE(usbss,0 , RTEMS_ARRAY_SIZE(usbss), &usbss[0]);
         {
                 .type = RTEMS_BSD_RES_IRQ,
                 .start_request = 0,
-                .start_actual = 0x11
-        },
-        {
-                .type = RTEMS_BSD_RES_IRQ,
-                .start_request = 1,
                 .start_actual = 0x12
-        },
-        {
-                .type = RTEMS_BSD_RES_IRQ,
-                .start_request = 2,
-                .start_actual = 0x13
         }
-
-
 };
 
 RTEMS_BSD_DEFINE_NEXUS_DEVICE(musbotg,1 , RTEMS_ARRAY_SIZE(musbotg_res1), &musbotg_res1[0]);
@@ -164,22 +132,37 @@ RTEMS_BSD_DEFINE_NEXUS_DEVICE(musbotg,1 , RTEMS_ARRAY_SIZE(musbotg_res1), &musbo
                 .type = RTEMS_BSD_RES_IRQ,
                 .start_request = 0,
                 .start_actual = 0x11
-        },
-        {
-                .type = RTEMS_BSD_RES_IRQ,
-                .start_request = 1,
-                .start_actual = 0x12
-        },
-        {
-                .type = RTEMS_BSD_RES_IRQ,
-                .start_request = 2,
-                .start_actual = 0x13
         }
 
 };
 
 RTEMS_BSD_DEFINE_NEXUS_DEVICE(musbotg,0 , RTEMS_ARRAY_SIZE(musbotg_res), &musbotg_res[0]);
 
+
+
+    static const rtems_bsd_device_resource usbss[] = {
+        {
+                .type = RTEMS_BSD_RES_MEMORY,
+                .start_request = 0,
+                .start_actual = 0x47400000 /*Memory map address of the ethernet*/
+        }
+};
+
+
+RTEMS_BSD_DEFINE_NEXUS_DEVICE(usbss,0 , RTEMS_ARRAY_SIZE(usbss), &usbss[0]);
+
+
+
+    static const rtems_bsd_device_resource am335x_prcm[] = {
+        {
+                .type = RTEMS_BSD_RES_MEMORY,
+                .start_request = 0,
+                .start_actual = 0x44E00000 /*Memory map address of the ethernet*/
+        }
+};
+
+
+RTEMS_BSD_DEFINE_NEXUS_DEVICE(am335x_prcm,0 , RTEMS_ARRAY_SIZE(am335x_prcm), &am335x_prcm[0]);
 
 
 
@@ -198,9 +181,13 @@ RTEMS_BSD_DEFINE_NEXUS_DEVICE(ti_scm,0 , RTEMS_ARRAY_SIZE(ti_scm), &ti_scm[0]);
 
 //RTEMS_BSD_DEFINE_NEXUS_DEVICE(pci, 0, 0, NULL);
 
-//SYSINIT_DRIVER_REFERENCE(usbus, ohci);
+//SYSINIT_DRIVER_REFERENCE(usbus, usbus);
 //SYSINIT_DRIVER_REFERENCE(umass, nexus);
-// SYSINIT_DRIVER_REFERENCE(uhub, usbus);
+ //SYSINIT_DRIVER_REFERENCE(uhub, usbus);
+SYSINIT_DRIVER_REFERENCE(uhub, uhub);
+SYSINIT_DRIVER_REFERENCE(usbus, musbotg);
+RTEMS_BSD_DRIVER_USB;
+RTEMS_BSD_DRIVER_USB_MASS;
 //SYSINIT_DRIVER_REFERENCE(umass, uhub);
 //SYSINIT_DRIVER_REFERENCE(usbss, nexus);
 //SYSINIT_DRIVER_REFERENCE(musbotg, usbss);

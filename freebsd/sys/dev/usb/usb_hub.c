@@ -75,6 +75,10 @@
 #include <dev/usb/usb_bus.h>
 #endif			/* USB_GLOBAL_INCLUDE_FILE */
 
+#ifndef USB_HAVE_TT_SUPPORT
+#define USB_HAVE_TT_SUPPORT
+#endif
+
 #define	UHUB_INTR_INTERVAL 250		/* ms */
 enum {
 	UHUB_INTR_TRANSFER,
@@ -217,7 +221,7 @@ static void
 uhub_intr_callback(struct usb_xfer *xfer, usb_error_t error)
 {
 	struct uhub_softc *sc = usbd_xfer_softc(xfer);
-
+//printf("uhub_intr_callback func\n");
 	switch (USB_GET_STATE(xfer)) {
 	case USB_ST_TRANSFERRED:
 		DPRINTFN(2, "\n");
@@ -420,7 +424,7 @@ uhub_count_active_host_ports(struct usb_device *udev, enum usb_dev_speed speed)
 	struct usb_port *up;
 	uint8_t retval = 0;
 	uint8_t x;
-
+printf("uhub_count_active_host_ports func\n");
 	if (udev == NULL)
 		goto done;
 	hub = udev->hub;
@@ -536,16 +540,18 @@ uhub_explore_sub(struct uhub_softc *sc, struct usb_port *up)
 	struct usb_device *child;
 	uint8_t refcount;
 	usb_error_t err;
-
+printf("uhub_explore_sub func\n");
 	bus = sc->sc_udev->bus;
 	err = 0;
 
 	/* get driver added refcount from USB bus */
 	refcount = bus->driver_added_refcount;
+	//printf("refcount:%x\n",refcount);
 
 	/* get device assosiated with the given port */
 	child = usb_bus_port_get_device(bus, up);
 	if (child == NULL) {
+		printf("child == NULL\n");
 		/* nothing to do */
 		goto done;
 	}
@@ -563,14 +569,16 @@ uhub_explore_sub(struct uhub_softc *sc, struct usb_port *up)
 		}
 	}
 	/* start control transfer, if device mode */
-
+//printf("child->flags.usb_mode:%x\n",child->flags.usb_mode );
 	if (child->flags.usb_mode == USB_MODE_DEVICE)
 		usbd_ctrl_transfer_setup(child);
 
 	/* if a HUB becomes present, do a recursive HUB explore */
 
 	if (child->hub)
+		{//printf("child->hub\n");
 		err = (child->hub->explore) (child);
+	}
 
 done:
 	return (err);
@@ -584,7 +592,7 @@ uhub_read_port_status(struct uhub_softc *sc, uint8_t portno)
 {
 	struct usb_port_status ps;
 	usb_error_t err;
-
+printf("uhub_read_port_status func\n");
 	err = usbd_req_get_port_status(
 	    sc->sc_udev, NULL, &ps, portno);
 
@@ -621,21 +629,23 @@ uhub_reattach_port(struct uhub_softc *sc, uint8_t portno)
 	uint8_t timeout;
 
 	DPRINTF("reattaching port %d\n", portno);
-
+//printf("uhub_reattach_port func\n");
 	timeout = 0;
 	udev = sc->sc_udev;
 	child = usb_bus_port_get_device(udev->bus,
 	    udev->hub->ports + portno - 1);
 
 repeat:
-
+//printf("repeat\n");
 	/* first clear the port connection change bit */
 
 	err = usbd_req_clear_port_feature(udev, NULL,
 	    portno, UHF_C_PORT_CONNECTION);
 
 	if (err)
+		{printf("err1\n");
 		goto error;
+	}
 
 	/* check if there is a child */
 
@@ -643,6 +653,7 @@ repeat:
 		/*
 		 * Free USB device and all subdevices, if any.
 		 */
+		//printf("uhub_reattach_port child != NULL\n");
 		usb_free_device(child, 0);
 		child = NULL;
 	}
@@ -650,12 +661,15 @@ repeat:
 
 	err = uhub_read_port_status(sc, portno);
 	if (err)
+		{printf("err2\n");
 		goto error;
+	}
 
 #if USB_HAVE_DISABLE_ENUM
 	/* check if we should skip enumeration from this USB HUB */
 	if (usb_disable_enumeration != 0 ||
 	    sc->sc_disable_enumeration != 0) {
+	//	printf("Enumeration is disabled!\n");
 		DPRINTF("Enumeration is disabled!\n");
 		goto error;
 	}
@@ -663,10 +677,12 @@ repeat:
 	/* check if nothing is connected to the port */
 
 	if (!(sc->sc_st.port_status & UPS_CURRENT_CONNECT_STATUS))
+		{//printf("check if nothing is connected to the port */\n");
 		goto error;
+	}
 
 	/* check if there is no power on the port and print a warning */
-
+//printf("uhub_reattach_port func 2\n");
 	switch (udev->speed) {
 	case USB_SPEED_HIGH:
 	case USB_SPEED_FULL:
@@ -691,7 +707,7 @@ repeat:
 	/* check if the device is in Host Mode */
 
 	if (!(sc->sc_st.port_status & UPS_PORT_MODE_DEVICE)) {
-
+        printf("Port %d is in Host Mode\n", portno);
 		DPRINTF("Port %d is in Host Mode\n", portno);
 
 		if (sc->sc_st.port_status & UPS_SUSPEND) {
@@ -832,6 +848,7 @@ repeat:
 	return (0);			/* success */
 
 error:
+//printf("it is error\n");
 	if (child != NULL) {
 		/*
 		 * Free USB device and all subdevices, if any.
@@ -969,6 +986,7 @@ done:
 void
 uhub_root_intr(struct usb_bus *bus, const uint8_t *ptr, uint8_t len)
 {
+	//printf("uhub_root_intr func!!!!!\n");
 	USB_BUS_LOCK_ASSERT(bus, MA_OWNED);
 
 	usb_needs_explore(bus, 0);
@@ -1014,7 +1032,9 @@ uhub_explore(struct usb_device *udev)
 
 	hub = udev->hub;
 	sc = hub->hubsoftc;
-
+//printf("uhub_explore func\n");
+//printf("usb1_ctrl:%x\n",*(unsigned int *)(0x44e10628));
+//printf("*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 	DPRINTFN(11, "udev=%p addr=%d\n", udev, udev->address);
 
 	/* ignore devices that are too deep */
@@ -1027,22 +1047,29 @@ uhub_explore(struct usb_device *udev)
 		DPRINTF("Device is suspended!\n");
 		return (0);
 	}
-
+//printf("uhub_explore func test1\n");
 	/*
 	 * Make sure we don't race against user-space applications
 	 * like LibUSB:
 	 */
 	do_unlock = usbd_enum_lock(udev);
 
-	for (x = 0; x != hub->nports; x++) {
+	
+	  for (x = 0; x != hub->nports; x++) {
+	//	printf("hub->nports:%d\n",hub->nports );
+	//	printf("hub->ports:%x\n",hub->ports );
 		up = hub->ports + x;
 		portno = x + 1;
+		printf("portno:%x\n",portno );
 
 		err = uhub_read_port_status(sc, portno);
 		if (err) {
+		//	printf("test1 err\n");
 			/* most likely the HUB is gone */
 			break;
 		}
+	//	printf("uhub_explore func test2\n");
+	//	printf("sc->sc_st.port_change:%x\n",sc->sc_st.port_change );
 		if (sc->sc_st.port_change & UPS_C_OVERCURRENT_INDICATOR) {
 			DPRINTF("Overcurrent on port %u.\n", portno);
 			err = usbd_req_clear_port_feature(
@@ -1052,6 +1079,7 @@ uhub_explore(struct usb_device *udev)
 				break;
 			}
 		}
+	//	printf("uhub_explore func test3\n");
 		if (!(sc->sc_flags & UHUB_FLAG_DID_EXPLORE)) {
 			/*
 			 * Fake a connect status change so that the
@@ -1060,6 +1088,7 @@ uhub_explore(struct usb_device *udev)
 			sc->sc_st.port_change |=
 			    UPS_C_CONNECT_STATUS;
 		}
+	//	printf("uhub_explore func test4\n");
 		if (sc->sc_st.port_change & UPS_C_PORT_ENABLED) {
 			err = usbd_req_clear_port_feature(
 			    udev, NULL, portno, UHF_C_PORT_ENABLE);
@@ -1088,6 +1117,8 @@ uhub_explore(struct usb_device *udev)
 				}
 			}
 		}
+	//	printf("uhub_explore func test5\n");
+	//	printf("*(unsigned int *)(0x44e10628):%X\n",*(unsigned int *)(0x44e10628) );
 		if (sc->sc_st.port_change & UPS_C_CONNECT_STATUS) {
 			err = uhub_reattach_port(sc, portno);
 			if (err) {
@@ -1095,6 +1126,7 @@ uhub_explore(struct usb_device *udev)
 				break;
 			}
 		}
+	//	printf("uhub_explore func test6\n");
 		if (sc->sc_st.port_change & (UPS_C_SUSPEND |
 		    UPS_C_PORT_LINK_STATE)) {
 			err = uhub_suspend_resume_port(sc, portno);
@@ -1103,6 +1135,7 @@ uhub_explore(struct usb_device *udev)
 				break;
 			}
 		}
+	//	printf("uhub_explore func test7\n");
 		err = uhub_explore_sub(sc, up);
 		if (err) {
 			/* no device(s) present */
@@ -1111,7 +1144,7 @@ uhub_explore(struct usb_device *udev)
 		/* explore succeeded - reset restart counter */
 		up->restartcnt = 0;
 	}
-
+//printf("uhub_explore func test8\n");
 	if (do_unlock)
 		usbd_enum_unlock(udev);
 
@@ -1126,7 +1159,19 @@ static int
 uhub_probe(device_t dev)
 {
 	struct usb_attach_arg *uaa = device_get_ivars(dev);
-printf("uhub_probe !!!!!\n");
+//printf("uhub_probe !!!!!\n");
+/*
+printf("usb0_drvvbus:%x\n",*(unsigned int *)(0x44e10a1c));
+printf("usb1_drvvbus:%x\n",*(unsigned int *)(0x44e10a34));
+
+
+printf("usb0_mode:%x\n",*(unsigned int *)(0x474010e8));
+printf("usb1_mode:%x\n",*(unsigned int *)(0x474018e8));
+printf("usb0_ctrl:%x\n",*(unsigned int *)(0x44e10620));
+printf("usb1_ctrl:%x\n",*(unsigned int *)(0x44e10628));
+printf("usb_vid_pid:%x\n",*(unsigned int *)(0x44e107f4));
+*/
+
 	if (uaa->usb_mode != USB_MODE_HOST)
 		return (ENXIO);
 
@@ -1226,7 +1271,7 @@ uhub_attach(device_t dev)
 
 	sc->sc_udev = udev;
 	sc->sc_dev = dev;
-printf("uhub_attach func\n");
+//printf("uhub_attach func\n");
 	mtx_init(&sc->sc_mtx, "USB HUB mutex", NULL, MTX_DEF);
 
 	device_set_usb_desc(dev);
@@ -1238,6 +1283,15 @@ printf("uhub_attach func\n");
 	    parent_hub,
 	    parent_hub ?
 	    parent_hub->flags.self_powered : 0);
+
+
+	printf( "depth=%d selfpowered=%d, parent=%p, parent->selfpowered=%d\n",
+	    udev->depth,
+	    udev->flags.self_powered,
+	    parent_hub,
+	    parent_hub ?
+	    parent_hub->flags.self_powered : 0);
+
 
 	if (uhub_is_too_deep(udev)) {
 		DPRINTFN(0, "HUB at depth %d, "
@@ -1270,6 +1324,7 @@ printf("uhub_attach func\n");
 	case USB_SPEED_FULL:
 	case USB_SPEED_HIGH:
 		/* assuming that there is one port */
+	//printf("udev->speed:%x\n",udev->speed );
 		err = usbd_req_get_hub_descriptor(udev, NULL, &hubdesc20, 1);
 		if (err) {
 			DPRINTFN(0, "getting USB 2.0 HUB descriptor failed,"
@@ -1278,7 +1333,7 @@ printf("uhub_attach func\n");
 		}
 		/* get number of ports */
 		nports = hubdesc20.bNbrPorts;
-
+     //   printf("nports:%x\n",nports );
 		/* get power delay */
 		pwrdly = ((hubdesc20.bPwrOn2PwrGood * UHD_PWRON_FACTOR) +
 		    usb_extra_power_up_time);
@@ -1490,13 +1545,15 @@ printf("uhub_attach func\n");
 			/* check if we should disable USB port power or not */
 			if (usb_disable_port_power != 0 ||
 			    sc->sc_disable_port_power != 0) {
+				printf("turn the power off\n");
 				/* turn the power off */
 				DPRINTFN(2, "Turning port %d power off\n", portno);
 				err = usbd_req_clear_port_feature(udev, NULL,
 				    portno, UHF_PORT_POWER);
 			} else {
-#endif
+#endif               
 				/* turn the power on */
+				//printf("turn the power on\n");
 				DPRINTFN(2, "Turning port %d power on\n", portno);
 				err = usbd_req_set_port_feature(udev, NULL,
 				    portno, UHF_PORT_POWER);
@@ -1526,6 +1583,8 @@ printf("uhub_attach func\n");
 	mtx_unlock(&sc->sc_mtx);
 
 	/* Enable automatic power save on all USB HUBs */
+//printf("usb0_ctrl:%x\n",*(unsigned int *)(0x44e10620));	
+//printf("usb1_ctrl:%x\n",*(unsigned int *)(0x44e10628));
 
 	usbd_set_power_mode(udev, USB_POWER_MODE_SAVE);
 
@@ -1711,7 +1770,7 @@ uhub_child_pnpinfo_string(device_t parent, device_t child,
 	struct usb_hub *hub;
 	struct usb_interface *iface;
 	struct hub_result res;
-
+printf("uhub_child_pnpinfo_string func!!!\n");
 	if (!device_is_attached(parent)) {
 		if (buflen)
 			buf[0] = 0;
@@ -2198,12 +2257,15 @@ usbd_fs_isoc_schedule_alloc_slot(struct usb_xfer *isoc_xfer, uint16_t isoc_time)
 struct usb_device *
 usb_bus_port_get_device(struct usb_bus *bus, struct usb_port *up)
 {
+	//printf("usb_bus_port_get_device func\n");
 	if ((bus == NULL) || (up == NULL)) {
 		/* be NULL safe */
+	//	printf("bus == NULL) || (up == NULL\n");
 		return (NULL);
 	}
 	if (up->device_index == 0) {
 		/* nothing to do */
+	//	printf("up->device_index == 0\n");
 		return (NULL);
 	}
 	return (bus->devices[up->device_index]);
@@ -2261,18 +2323,22 @@ void
 usb_needs_explore(struct usb_bus *bus, uint8_t do_probe)
 {
 	uint8_t do_unlock;
-
+//printf("usb_needs_explore func\n");
 	DPRINTF("\n");
 
 	if (bus == NULL) {
+	//	printf("No bus pointer!\n");
 		DPRINTF("No bus pointer!\n");
 		return;
 	}
+	
 	if ((bus->devices == NULL) ||
 	    (bus->devices[USB_ROOT_HUB_ADDR] == NULL)) {
+		printf("No root HUB\n");
 		DPRINTF("No root HUB\n");
 		return;
 	}
+	
 	if (mtx_owned(&bus->bus_mtx)) {
 		do_unlock = 0;
 	} else {
@@ -2280,6 +2346,7 @@ usb_needs_explore(struct usb_bus *bus, uint8_t do_probe)
 		do_unlock = 1;
 	}
 	if (do_probe) {
+		//printf("do_probe\n");
 		bus->do_probe = 1;
 	}
 	if (usb_proc_msignal(USB_BUS_EXPLORE_PROC(bus),
@@ -2304,6 +2371,7 @@ usb_needs_explore_all(void)
 	devclass_t dc;
 	device_t dev;
 	int max;
+	printf("usb_needs_explore_all func!!!!\n");
 
 	DPRINTFN(3, "\n");
 
@@ -2339,6 +2407,7 @@ usb_needs_explore_all(void)
 void
 usb_bus_power_update(struct usb_bus *bus)
 {
+//	printf("usb_bus_power_update\n");
 	usb_needs_explore(bus, 0 /* no probe */ );
 }
 #endif
@@ -2425,6 +2494,7 @@ usbd_transfer_power_ref(struct usb_xfer *xfer, int val)
 }
 #endif
 
+
 /*------------------------------------------------------------------------*
  *	usb_peer_should_wakeup
  *
@@ -2460,7 +2530,7 @@ usb_bus_powerd(struct usb_bus *bus)
 	usb_ticks_t mintime;
 	usb_size_t type_refs[5];
 	uint8_t x;
-
+printf("usb_bus_powerd!!!!\n");
 	limit = usb_power_timeout;
 	if (limit == 0)
 		limit = hz;
@@ -2482,7 +2552,9 @@ usb_bus_powerd(struct usb_bus *bus)
 
 		udev = bus->devices[x];
 		if (udev == NULL)
+			{//printf("udev == NULL continue\n");
 			continue;
+		}
 
 		temp = ticks - udev->pwr_save.last_xfer_time;
 
@@ -2841,6 +2913,7 @@ repeat:
 void
 usbd_set_power_mode(struct usb_device *udev, uint8_t power_mode)
 {
+	printf("usbd_set_power_mode func\n");
 	/* filter input argument */
 	if ((power_mode != USB_POWER_MODE_ON) &&
 	    (power_mode != USB_POWER_MODE_OFF))
@@ -2892,6 +2965,7 @@ usbd_filter_power_mode(struct usb_device *udev, uint8_t power_mode)
 void
 usbd_start_re_enumerate(struct usb_device *udev)
 {
+	printf("usbd_start_re_enumerate\n");
 	if (udev->re_enumerate_wait == USB_RE_ENUM_DONE) {
 		udev->re_enumerate_wait = USB_RE_ENUM_START;
 		usb_needs_explore(udev->bus, 0);
