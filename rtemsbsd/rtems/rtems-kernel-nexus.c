@@ -135,7 +135,8 @@ printf("sr:%d\n",sr );
 		printf("i%d\n",i );
 		const rtems_bsd_device_resource *dr = &nd->resources[i];
        printf("dr->start_request:%d\n",dr->start_request);
-
+       printf("type:%d\n",type );
+       printf("dr->type:%d\n",dr->type );
 		if (dr->type == type && dr->start_request == sr) {
 			printf("rid:%d\n",rid );
 			if (rid--)
@@ -143,6 +144,14 @@ printf("sr:%d\n",sr );
  			printf("dr->start_actual\n");
 			*start = dr->start_actual;
       //   printf("sr:%d\n",sr);
+			return (true);
+		}
+		else if(dr->type == type && dr->start_request >= 1)
+		{
+			printf("start_request >= 1\n");
+			if (rid--)
+ 				continue;
+			*start = dr->start_actual;
 			return (true);
 		}
 	}

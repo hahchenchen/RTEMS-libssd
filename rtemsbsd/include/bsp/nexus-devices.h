@@ -108,7 +108,7 @@ SYSINIT_DRIVER_REFERENCE(smscphy, miibus);
         {
                 .type = RTEMS_BSD_RES_IRQ,
                 .start_request = 0,
-                .start_actual = 0x12
+                .start_actual = 0x13
         }
 };
 
@@ -131,7 +131,7 @@ RTEMS_BSD_DEFINE_NEXUS_DEVICE(musbotg,1 , RTEMS_ARRAY_SIZE(musbotg_res1), &musbo
         {
                 .type = RTEMS_BSD_RES_IRQ,
                 .start_request = 0,
-                .start_actual = 0x11
+                .start_actual = 0x12
         }
 
 };

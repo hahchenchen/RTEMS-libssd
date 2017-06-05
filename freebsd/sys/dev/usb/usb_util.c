@@ -134,16 +134,17 @@ device_set_usb_desc(device_t dev)
 void
 usb_pause_mtx(struct mtx *mtx, int timo)
 {
+	printf("usb_pause_mtx func\n");
 	if (mtx != NULL)
 		mtx_unlock(mtx);
-	
+	printf("0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 	/*
 	 * Add one tick to the timeout so that we don't return too
 	 * early! Note that pause() will assert that the passed
 	 * timeout is positive and non-zero!
 	 */
 	pause("USBWAIT", timo + 1);
-
+    printf("after pause\n");
 	if (mtx != NULL)
 		{printf("mtx != NULL\n");
 		mtx_lock(mtx);

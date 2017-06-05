@@ -156,6 +156,8 @@ _sleep(void *ident, struct lock_object *lock, int priority,
     const char *wmesg, int timo)
 {
 	struct thread *td;
+	printf("_sleep func\n");
+	printf("0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 #ifndef __rtems__
 	struct proc *p;
 #endif /* __rtems__ */
@@ -175,6 +177,7 @@ _sleep(void *ident, struct lock_object *lock, int priority,
 	if (KTRPOINT(td, KTR_CSW))
 		ktrcsw(1, 0, wmesg);
 #endif
+	printf("0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 	WITNESS_WARN(WARN_GIANTOK | WARN_SLEEPOK, lock,
 	    "Sleeping on \"%s\"", wmesg);
 	KASSERT(timo != 0 || mtx_owned(&Giant) || lock != NULL,
@@ -212,7 +215,7 @@ _sleep(void *ident, struct lock_object *lock, int priority,
 #else /* __rtems__ */
 	pri = priority;
 #endif /* __rtems__ */
-
+printf("0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 	/*
 	 * If we are already on a sleep queue, then remove us from that
 	 * sleep queue first.  We have to do this to handle recursive
@@ -231,7 +234,7 @@ _sleep(void *ident, struct lock_object *lock, int priority,
 	if (priority & PBDRY)
 		flags |= SLEEPQ_STOP_ON_BDRY;
 #endif /* __rtems__ */
-
+printf("0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 	sleepq_lock(ident);
 	CTR5(KTR_PROC, "sleep: thread %ld (pid %ld, %s) on %s (%p)",
 	    td->td_tid, p->p_pid, td->td_name, wmesg, ident);
@@ -256,6 +259,7 @@ _sleep(void *ident, struct lock_object *lock, int priority,
 	 * stopped, then td will no longer be on a sleep queue upon
 	 * return from cursig().
 	 */
+	printf("5-0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 	sleepq_add(ident, lock, wmesg, flags, 0);
 	if (timo)
 		sleepq_set_timeout(ident, timo);
@@ -265,6 +269,7 @@ _sleep(void *ident, struct lock_object *lock, int priority,
 		lock_state = class->lc_unlock(lock);
 		sleepq_lock(ident);
 	}
+	printf("5-0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 #ifndef __rtems__
 	if (timo && catch)
 		rval = sleepq_timedwait_sig(ident, pri);
@@ -272,13 +277,19 @@ _sleep(void *ident, struct lock_object *lock, int priority,
 #else /* __rtems__ */
 	if (timo)
 #endif /* __rtems__ */
+	{
+		printf("6-0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 		rval = sleepq_timedwait(ident, pri);
+	printf("7-0x47401834:%x\n",*(unsigned int *)(0x47401834) );
+}
 #ifndef __rtems__
 	else if (catch)
 		rval = sleepq_wait_sig(ident, pri);
 #endif /* __rtems__ */
 	else {
+		printf("8-0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 		sleepq_wait(ident, pri);
+		printf("9-0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 		rval = 0;
 	}
 #ifdef KTRACE
@@ -290,6 +301,8 @@ _sleep(void *ident, struct lock_object *lock, int priority,
 		class->lc_lock(lock, lock_state);
 		WITNESS_RESTORE(lock, lock_witness);
 	}
+	printf("end _sleep func\n");
+	printf("0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 	return (rval);
 }
 
@@ -384,12 +397,14 @@ int
 pause(const char *wmesg, int timo)
 {
 	KASSERT(timo >= 0, ("pause: timo must be >= 0"));
-
+printf("pause\n");
+printf("timo:%d\n",timo );
 	/* silently convert invalid timeouts */
 	if (timo < 1)
 		timo = 1;
 
 	if (cold) {
+		printf("cold\n");
 		/*
 		 * We delay one HZ at a time to avoid overflowing the
 		 * system specific DELAY() function(s):
@@ -399,9 +414,13 @@ pause(const char *wmesg, int timo)
 			timo -= hz;
 		}
 		if (timo > 0)
+			{printf("timo > 0\n");
 			DELAY(timo * tick);
+		}
 		return (0);
 	}
+	printf("before tsleep\n");
+	printf("0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 	return (tsleep(&pause_wchan, 0, wmesg, timo));
 }
 

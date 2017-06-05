@@ -2257,7 +2257,6 @@ musbotg_interrupt(struct musbotg_softc *sc,
 	uint8_t usb_status;
 	uint8_t temp;
 	uint8_t to = 2;
-printf("musbotg_interrupt func\n");
 	USB_BUS_LOCK(&sc->sc_bus);
 
 repeat:
@@ -3152,6 +3151,8 @@ musbotg_init(struct musbotg_softc *sc)
 	
   // printf("musbotg_init func test3\n");
 	/* wait a little for things to stabilise */
+	printf("hz/10:%d\n",hz / 10 );
+	printf("0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 	usb_pause_mtx(&sc->sc_bus.bus_mtx, hz / 10);
 //printf("musbotg_init func test3.1\n");
 	DPRINTF("DEVCTL=0x%02x\n", temp);
@@ -3852,19 +3853,19 @@ tr_handle_get_descriptor:
 	case UDESC_STRING:
 		switch (value & 0xff) {
 		case 0:		/* Language table */
-			printf("0\n");
+			//printf("0\n");
 			len = sizeof(usb_string_lang_en);
 			ptr = (const void *)&usb_string_lang_en;
 			goto tr_valid;
 
 		case 1:		/* Vendor */
-			printf("1\n");
+			//printf("1\n");
 			len = sizeof(musbotg_vendor);
 			ptr = (const void *)&musbotg_vendor;
 			goto tr_valid;
 
 		case 2:		/* Product */
-			printf("2\n");
+			//printf("2\n");
 			len = sizeof(musbotg_product);
 			ptr = (const void *)&musbotg_product;
 			goto tr_valid;
@@ -4042,7 +4043,7 @@ printf("index:%x\n",index );
 		musbotg_pull_down(sc);
 		musbotg_clocks_off(sc);
 	}
-
+printf("sc->sc_mode:%x\n",sc->sc_mode );
 	/* Select Device Side Mode */
 	if (sc->sc_mode == MUSB2_DEVICE_MODE)
 		value = UPS_PORT_MODE_DEVICE;
@@ -4050,23 +4051,30 @@ printf("index:%x\n",index );
 		value = 0;
 
 	if (sc->sc_flags.status_high_speed) {
+		printf("value |= UPS_HIGH_SPEED;\n");
 		value |= UPS_HIGH_SPEED;
 	}
 	if (sc->sc_flags.port_powered) {
+		printf("value |= UPS_PORT_POWER;\n");
 		value |= UPS_PORT_POWER;
 	}
 	if (sc->sc_flags.port_enabled) {
+		printf("value |= UPS_PORT_ENABLED;\n");
 		value |= UPS_PORT_ENABLED;
 	}
 
 	if (sc->sc_flags.port_over_current)
+	{printf("value |= UPS_OVERCURRENT_INDICATOR;\n");
 		value |= UPS_OVERCURRENT_INDICATOR;
+	}
 
 	if (sc->sc_flags.status_vbus &&
 	    sc->sc_flags.status_bus_reset) {
+		printf("value |= UPS_CURRENT_CONNECT_STATUS;\n");
 		value |= UPS_CURRENT_CONNECT_STATUS;
 	}
 	if (sc->sc_flags.status_suspend) {
+		printf("value |= UPS_SUSPEND;\n");
 		value |= UPS_SUSPEND;
 	}
 	USETW(sc->sc_hub_temp.ps.wPortStatus, value);

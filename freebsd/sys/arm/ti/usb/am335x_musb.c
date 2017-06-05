@@ -177,9 +177,6 @@ printf("sc->sc_id:%d\n",sc->sc_id );
 	c |= 1 << 20; /* Session end enable */
 	ti_scm_reg_write_4(reg, c);
 	printf("*(unsigned int *)(0x44e10628):%x\n",*(unsigned int *)(0x44e10628) );
-if (sc->sc_flags.status_vbus && sc->sc_id) {
-while(1);
-}
 	//printf("c:%x\n",c );
 	//printf("*(unsigned int *)(0x44e10628):%X\n",*(unsigned int *)(0x44e10628) );
 
@@ -217,15 +214,14 @@ static void
 musbotg_wrapper_interrupt(void *arg)
 {
 	
-	*(unsigned int *)(0x4804C13c)=~(0xf<<21);
 	struct musbotg_softc *sc = arg;
 	struct musbotg_super_softc *ssc = sc->sc_platform_data;
 	uint32_t stat, stat0, stat1;
-printf("musbotg_wrapper_interrupt func\n");
+
 	stat = USBCTRL_READ4(ssc, USBCTRL_STAT);
 	stat0 = USBCTRL_READ4(ssc, USBCTRL_IRQ_STAT0);
 	stat1 = USBCTRL_READ4(ssc, USBCTRL_IRQ_STAT1);
-printf("musbotg_wrapper_interrupt func111111111111\n");	
+	printk("musbotg_wrapper_interrupt\n");
 	if (stat0)
 		USBCTRL_WRITE4(ssc, USBCTRL_IRQ_STAT0, stat0);
 	if (stat1)
@@ -363,6 +359,7 @@ printf("test2\n");
 		goto error;
 	}
 */
+
 	err = bus_setup_intr(dev, sc->sc_mem_res[2],
 	    INTR_TYPE_BIO | INTR_MPSAFE,
 	    NULL, (driver_intr_t *)musbotg_wrapper_interrupt,
@@ -372,7 +369,8 @@ printf("test2\n");
 		device_printf(dev,
 		    "Failed to setup interrupt for musb\n");
 		goto error;
-	}
+	 }
+    
    printf("test4\n");
    #ifndef __rtems__
 	err = bus_setup_intr(dev, sc->sc_otg.sc_irq_res,

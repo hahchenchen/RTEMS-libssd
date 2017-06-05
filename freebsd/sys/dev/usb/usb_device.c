@@ -1555,7 +1555,7 @@ usb_alloc_device(device_t parent_dev, struct usb_bus *bus,
 	uint8_t config_quirk;
 	uint8_t set_config_failed;
 	uint8_t do_unlock;
-
+    printf("usb_alloc_device !!!!!!!!!!!!!!!1\n");
 	printf("parent_dev=%p, bus=%p, parent_hub=%p, depth=%u, "
 	    "port_index=%u, port_no=%u, speed=%u, usb_mode=%u\n",
 	    parent_dev, bus, parent_hub, depth, port_index, port_no,

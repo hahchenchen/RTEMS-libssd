@@ -629,14 +629,14 @@ uhub_reattach_port(struct uhub_softc *sc, uint8_t portno)
 	uint8_t timeout;
 
 	DPRINTF("reattaching port %d\n", portno);
-//printf("uhub_reattach_port func\n");
+printf("uhub_reattach_port func\n");
 	timeout = 0;
 	udev = sc->sc_udev;
 	child = usb_bus_port_get_device(udev->bus,
 	    udev->hub->ports + portno - 1);
 
 repeat:
-//printf("repeat\n");
+printf("repeat\n");
 	/* first clear the port connection change bit */
 
 	err = usbd_req_clear_port_feature(udev, NULL,
@@ -664,7 +664,7 @@ repeat:
 		{printf("err2\n");
 		goto error;
 	}
-
+printf("uhub_reattach_port test1\n");
 #if USB_HAVE_DISABLE_ENUM
 	/* check if we should skip enumeration from this USB HUB */
 	if (usb_disable_enumeration != 0 ||
@@ -677,12 +677,12 @@ repeat:
 	/* check if nothing is connected to the port */
 
 	if (!(sc->sc_st.port_status & UPS_CURRENT_CONNECT_STATUS))
-		{//printf("check if nothing is connected to the port */\n");
+		{printf("check if nothing is connected to the port */\n");
 		goto error;
 	}
 
 	/* check if there is no power on the port and print a warning */
-//printf("uhub_reattach_port func 2\n");
+ printf("uhub_reattach_port test 2\n");
 	switch (udev->speed) {
 	case USB_SPEED_HIGH:
 	case USB_SPEED_FULL:
@@ -830,6 +830,7 @@ repeat:
 	 *
 	 * NOTE: This part is currently FreeBSD specific.
 	 */
+	printf("Figure out the device mode\n");
 	if (udev->parent_hub != NULL) {
 		/* inherit mode from the parent HUB */
 		mode = udev->parent_hub->flags.usb_mode;
@@ -1032,7 +1033,7 @@ uhub_explore(struct usb_device *udev)
 
 	hub = udev->hub;
 	sc = hub->hubsoftc;
-//printf("uhub_explore func\n");
+printf("uhub_explore func\n");
 //printf("usb1_ctrl:%x\n",*(unsigned int *)(0x44e10628));
 //printf("*(unsigned int *)(0x47401c60):%x\n",*(unsigned int *)(0x47401c60) );
 	DPRINTFN(11, "udev=%p addr=%d\n", udev, udev->address);
@@ -1159,18 +1160,6 @@ static int
 uhub_probe(device_t dev)
 {
 	struct usb_attach_arg *uaa = device_get_ivars(dev);
-//printf("uhub_probe !!!!!\n");
-/*
-printf("usb0_drvvbus:%x\n",*(unsigned int *)(0x44e10a1c));
-printf("usb1_drvvbus:%x\n",*(unsigned int *)(0x44e10a34));
-
-
-printf("usb0_mode:%x\n",*(unsigned int *)(0x474010e8));
-printf("usb1_mode:%x\n",*(unsigned int *)(0x474018e8));
-printf("usb0_ctrl:%x\n",*(unsigned int *)(0x44e10620));
-printf("usb1_ctrl:%x\n",*(unsigned int *)(0x44e10628));
-printf("usb_vid_pid:%x\n",*(unsigned int *)(0x44e107f4));
-*/
 
 	if (uaa->usb_mode != USB_MODE_HOST)
 		return (ENXIO);
@@ -2257,15 +2246,16 @@ usbd_fs_isoc_schedule_alloc_slot(struct usb_xfer *isoc_xfer, uint16_t isoc_time)
 struct usb_device *
 usb_bus_port_get_device(struct usb_bus *bus, struct usb_port *up)
 {
-	//printf("usb_bus_port_get_device func\n");
+	printf("usb_bus_port_get_device func\n");
+	printf("0x47401834:%x\n",*(unsigned int *)(0x47401834) );
 	if ((bus == NULL) || (up == NULL)) {
 		/* be NULL safe */
-	//	printf("bus == NULL) || (up == NULL\n");
+		printf("bus == NULL) || (up == NULL\n");
 		return (NULL);
 	}
 	if (up->device_index == 0) {
 		/* nothing to do */
-	//	printf("up->device_index == 0\n");
+		printf("up->device_index == 0\n");
 		return (NULL);
 	}
 	return (bus->devices[up->device_index]);
@@ -2280,6 +2270,7 @@ void
 usb_bus_port_set_device(struct usb_bus *bus, struct usb_port *up,
     struct usb_device *udev, uint8_t device_index)
 {
+	printf("usb_bus_port_set_device func\n");
 	if (bus == NULL) {
 		/* be NULL safe */
 		return;
@@ -2323,7 +2314,7 @@ void
 usb_needs_explore(struct usb_bus *bus, uint8_t do_probe)
 {
 	uint8_t do_unlock;
-//printf("usb_needs_explore func\n");
+printf("usb_needs_explore func\n");
 	DPRINTF("\n");
 
 	if (bus == NULL) {
